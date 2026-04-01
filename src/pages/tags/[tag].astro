@@ -1,0 +1,78 @@
+---
+import Layout from '../../layouts/Layout.astro'
+import { getCollection } from 'astro:content'
+
+export async function getStaticPaths() {
+  const posts = await getCollection('posts')
+  
+  // 收集所有标签
+  const tags = new Set<string>()
+  posts.forEach(post => {
+    if (post.data.tags) {
+      post.data.tags.forEach(tag => tags.add(tag))
+    }
+  })
+  
+  return Array.from(tags).map(tag => ({
+    params: { tag },
+    props: { tag },
+  }))
+}
+
+const { tag } = Astro.props
+const posts = await getCollection('posts')
+const tagPosts = posts
+  .filter(post => post.data.tags?.includes(tag))
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
+
+const formatDate = (date: Date) => {
+  return date.toLocaleDateString('zh-CN', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  })
+}
+---
+
+<Layout title={`${tag} - 标签 - 墨白`} description={`标签 "${tag}" 下的所有文章`}>
+  <section class="max-w-4xl mx-auto px-6 py-12">
+    <header class="mb-12 text-center">
+      <a href="/tags" class="inline-block text-sm text-ink-light hover:text-accent mb-4">
+        ← 所有标签
+      </a>
+      <h1 class="text-3xl font-serif font-semibold text-ink mb-4">
+        #{tag}
+      </h1>
+      <p class="text-ink-light">共 {tagPosts.length} 篇文章</p>
+    </header>
+    
+    <div class="space-y-8">
+      {tagPosts.map(post => (
+        <article class="group">
+          <a href={`/posts/${post.id}`} class="block">
+            <div class="mb-2">
+              <span class="text-sm text-ink-light">
+                {formatDate(post.data.date)}
+              </span>
+            </div>
+            <h3 class="text-xl font-serif font-semibold text-ink mb-2 group-hover:text-accent transition-colors">
+              {post.data.title}
+            </h3>
+            <p class="text-ink-light">
+              {post.data.description}
+            </p>
+          </a>
+        </article>
+      ))}
+    </div>
+  </section>
+</Layout>
+
+<style is:global>
+  .dark h1 {
+    @apply text-[#e8e8e8];
+  }
+  .dark h3 {
+    @apply text-[#e8e8e8];
+  }
+</style>

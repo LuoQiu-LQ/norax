@@ -1,0 +1,446 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Source Sans 3", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Source Serif 4", ui-serif, Georgia, serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  
+  --color-cream: #faf8f5;
+  --color-cream-dark: #f5f2ed;
+  --color-ink: #2c2c2c;
+  --color-ink-light: #6b6b6b;
+  --color-accent: #8b7355;
+  --color-accent-light: #a69076;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--color-cream);
+  color: var(--color-ink);
+  font-family: var(--font-serif);
+  line-height: 1.8;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.4s ease, color 0.4s ease;
+}
+
+/* 主题切换时的过渡效果 */
+*, *::before, *::after {
+  transition: background-color 0.4s ease, 
+              border-color 0.4s ease, 
+              color 0.3s ease,
+              box-shadow 0.3s ease;
+}
+
+/* 排除一些不需要过渡的元素 */
+.no-transition,
+.no-transition * {
+  transition: none !important;
+}
+
+::selection {
+  background-color: rgba(139, 115, 85, 0.2);
+}
+
+a {
+  transition: color 0.2s ease;
+}
+
+a:hover {
+  color: var(--color-accent);
+}
+
+/* 暗色模式 */
+.dark body {
+  background-color: #121212;
+  color: #e5e5e5;
+}
+
+.dark ::selection {
+  background-color: rgba(139, 115, 85, 0.4);
+}
+
+.dark a:hover {
+  color: var(--color-accent-light);
+}
+
+/* 页面过渡动画 */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.page-transition {
+  animation: fadeIn 0.5s ease-out;
+}
+
+/* 滚动触发动画 */
+.scroll-animate {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+
+.scroll-animate.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* 链接下划线动画 */
+.link-underline {
+  position: relative;
+  text-decoration: none;
+}
+
+.link-underline::after {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 2px;
+  bottom: -2px;
+  left: 0;
+  background-color: var(--color-accent);
+  transition: width 0.3s ease;
+}
+
+.link-underline:hover::after {
+  width: 100%;
+}
+
+/* 卡片悬浮效果 */
+.card-hover {
+  transition: all 0.3s ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
+}
+
+.dark .card-hover:hover {
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+}
+
+/* 返回顶部按钮 */
+.back-to-top {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 9999px;
+  background-color: var(--color-accent);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.3s ease;
+  border: none;
+}
+
+.back-to-top.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.back-to-top:hover {
+  background-color: var(--color-accent-light);
+  transform: scale(1.1);
+}
+
+/* 搜索模态框 */
+.search-modal {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  z-index: 50;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 8rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.search-modal.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* 进度条 */
+#reading-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 2px;
+  background-color: var(--color-accent);
+  z-index: 50;
+  transition: width 0.15s ease;
+}
+
+.dark #reading-progress {
+  background-color: var(--color-accent-light);
+}
+
+/* 文章内容样式 */
+.prose {
+  max-width: none;
+}
+
+.prose h1, .prose h2, .prose h3, .prose h4 {
+  font-family: var(--font-serif);
+  font-weight: 600;
+  color: var(--color-ink);
+  margin-top: 3rem;
+  margin-bottom: 1rem;
+  line-height: 1.4;
+}
+
+.dark .prose h1, 
+.dark .prose h2, 
+.dark .prose h3, 
+.dark .prose h4 {
+  color: #f5f5f5;
+}
+
+.prose p {
+  margin-bottom: 1.5rem;
+  font-size: 1.125rem;
+  color: var(--color-ink);
+}
+
+.dark .prose p {
+  color: #d4d4d4;
+}
+
+.prose a {
+  color: var(--color-accent);
+  text-decoration: underline;
+  text-decoration-color: rgba(139, 115, 85, 0.3);
+}
+
+.prose a:hover {
+  text-decoration-color: var(--color-accent);
+}
+
+.dark .prose a {
+  color: var(--color-accent-light);
+  text-decoration-color: rgba(166, 144, 118, 0.3);
+}
+
+.prose code {
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  background-color: #f5f2ed;
+  color: var(--color-ink);
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.25rem;
+}
+
+.dark .prose code {
+  background-color: #2a2a2a;
+  color: #e5e5e5;
+}
+
+.prose pre {
+  background-color: #f6f8fa;
+  color: #24292e;
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  overflow-x: auto;
+  margin: 2rem 0;
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.prose pre code {
+  background-color: transparent;
+  color: inherit;
+  padding: 0;
+  border-radius: 0;
+  font-size: inherit;
+}
+
+/* Shiki 双主题支持 */
+.prose pre.astro-code {
+  background-color: #f6f8fa !important;
+  color: #24292e !important;
+}
+
+.prose pre.astro-code span {
+  color: inherit !important;
+}
+
+.dark .prose pre {
+  background-color: #0d1117 !important;
+  color: #c9d1d9 !important;
+}
+
+.dark .prose pre.astro-code {
+  background-color: #0d1117 !important;
+  color: #c9d1d9 !important;
+}
+
+.prose blockquote {
+  border-left: 4px solid rgba(139, 115, 85, 0.5);
+  padding-left: 1.5rem;
+  font-style: italic;
+  color: var(--color-ink-light);
+  margin: 2rem 0;
+}
+
+.dark .prose blockquote {
+  border-color: rgba(166, 144, 118, 0.5);
+  color: #a0a0a0;
+}
+
+.prose ul, .prose ol {
+  margin-bottom: 1.5rem;
+  padding-left: 1.5rem;
+}
+
+.prose li {
+  margin-bottom: 0.5rem;
+  font-size: 1.125rem;
+  color: var(--color-ink);
+}
+
+.dark .prose li {
+  color: #d4d4d4;
+}
+
+.prose img {
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  margin: 2rem auto;
+  transition: transform 0.3s ease;
+}
+
+.prose img:hover {
+  transform: scale(1.02);
+}
+
+.prose hr {
+  border-color: #e5e5e5;
+  margin: 3rem 0;
+}
+
+.dark .prose hr {
+  border-color: #404040;
+}
+
+/* 悬浮动效 */
+.hover-lift {
+  transition: transform 0.3s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-2px);
+}
+
+/* 通用暗色模式文字颜色 */
+.dark .text-ink {
+  color: #f5f5f5;
+}
+
+.dark .text-ink-light {
+  color: #a0a0a0;
+}
+
+.dark .bg-cream {
+  background-color: #121212;
+}
+
+.dark .bg-cream-dark {
+  background-color: #1e1e1e;
+}
+
+.dark .border-cream-dark {
+  border-color: #333333;
+}
+
+.dark header {
+  background-color: rgba(18, 18, 18, 0.85);
+}
+
+.dark footer {
+  border-color: #333333;
+}
+
+/* 白天模式页脚文字和图标颜色加深 */
+footer {
+  color: var(--color-ink);
+}
+
+footer p,
+footer span,
+footer a,
+footer li {
+  color: #3d3d3d;
+}
+
+footer a:hover {
+  color: var(--color-accent);
+}
+
+footer svg {
+  color: #3d3d3d;
+}
+
+/* 暗色模式还原 */
+.dark footer p,
+.dark footer span,
+.dark footer a,
+.dark footer li {
+  color: #a0a0a0;
+}
+
+.dark footer a:hover {
+  color: var(--color-accent-light);
+}
+
+.dark footer svg {
+  color: #a0a0a0;
+}
+
+/* 社交按钮悬浮效果 */
+.social-btn {
+  position: relative;
+  overflow: hidden;
+}
+
+.social-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-color: var(--color-accent);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.social-btn:hover::before {
+  opacity: 0.1;
+}
+
+.social-btn:hover {
+  color: var(--color-accent) !important;
+  transform: translateY(-2px);
+}
+
+.dark .social-btn:hover {
+  color: var(--color-accent-light) !important;
+}

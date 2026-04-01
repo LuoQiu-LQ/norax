@@ -1,0 +1,431 @@
+---
+import '../styles/global.css'
+import { getCollection } from 'astro:content'
+
+interface Props {
+  title: string
+  description?: string
+}
+
+const { title, description = '一个极简文艺的个人博客' } = Astro.props
+const posts = await getCollection('posts')
+const searchData = posts.map(post => ({
+  id: post.id,
+  title: post.data.title,
+  description: post.data.description,
+  tags: post.data.tags || []
+}))
+---
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content={description} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>{title}</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    
+    <!-- 暗色模式初始化脚本 - 必须在页面渲染前执行以避免闪烁 -->
+    <script is:inline>
+      (function() {
+        const savedTheme = localStorage.getItem('theme');
+        
+        if (savedTheme === 'dark') {
+          document.documentElement.classList.add('dark');
+        } else if (savedTheme === 'light') {
+          document.documentElement.classList.remove('dark');
+        } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+          document.documentElement.classList.add('dark');
+        }
+      })();
+    </script>
+    
+    <!-- 搜索数据 -->
+    <script define:vars={{ searchData }}>
+      window.searchData = searchData
+    </script>
+  </head>
+  <body class="min-h-screen flex flex-col page-transition">
+    <!-- 主题切换闪烁遮罩 -->
+    <div id="theme-flash" class="fixed inset-0 pointer-events-none z-[100] opacity-0 transition-opacity duration-300" style="background-color: inherit;"></div>
+    
+    <!-- 阅读进度条 -->
+    <div id="reading-progress" style="width: 0%"></div>
+    
+    <!-- 头部导航 -->
+    <header class="sticky top-0 z-40 bg-cream/90 backdrop-blur-md border-b border-cream-dark">
+      <nav class="max-w-5xl mx-auto px-6 lg:px-8 py-5 flex items-center justify-between">
+        <!-- Logo -->
+        <a href="/" class="group flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full bg-gradient-to-br from-accent to-accent-light flex items-center justify-center text-white shadow-md group-hover:shadow-lg transition-shadow" style="font-family: 'Source Serif 4', serif; font-size: 1.5rem; line-height: 1;">
+            落
+          </div>
+          <span class="text-xl font-serif font-semibold text-ink group-hover:text-accent transition-colors">
+            落秋笔记
+          </span>
+        </a>
+        
+        <!-- 导航链接 -->
+        <div class="hidden md:flex items-center gap-10">
+          <a href="/" class="text-base font-medium text-ink-light hover:text-accent transition-colors relative group">
+            <span>首页</span>
+            <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-accent transition-all duration-300 group-hover:w-full"></span>
+          </a>
+          <a href="/archives" class="text-base font-medium text-ink-light hover:text-accent transition-colors relative group">
+            <span>归档</span>
+            <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-accent transition-all duration-300 group-hover:w-full"></span>
+          </a>
+          <a href="/tags" class="text-base font-medium text-ink-light hover:text-accent transition-colors relative group">
+            <span>标签</span>
+            <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-accent transition-all duration-300 group-hover:w-full"></span>
+          </a>
+          <a href="/about" class="text-base font-medium text-ink-light hover:text-accent transition-colors relative group">
+            <span>关于</span>
+            <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-accent transition-all duration-300 group-hover:w-full"></span>
+          </a>
+        </div>
+        
+        <!-- 右侧按钮 -->
+        <div class="flex items-center gap-4">
+          <!-- 搜索按钮 -->
+          <button 
+            id="search-btn"
+            class="p-2.5 text-ink-light hover:text-accent hover:bg-cream-dark rounded-lg transition-all"
+            aria-label="搜索"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </button>
+          
+          <!-- 暗色模式切换 -->
+          <button id="theme-toggle" class="theme-toggle p-2 text-ink-light hover:text-accent hover:bg-cream-dark rounded-lg transition-all" aria-label="切换主题">
+            <svg id="sun-icon" class="w-5 h-5 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+            </svg>
+            <svg id="moon-icon" class="w-5 h-5 hidden transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+            </svg>
+          </button>
+          
+          <!-- 移动端菜单按钮 -->
+          <button 
+            id="mobile-menu-btn"
+            class="md:hidden p-2.5 text-ink-light hover:bg-cream-dark rounded-lg transition-all"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+        </div>
+      </nav>
+    </header>
+    
+    <!-- 移动端菜单 -->
+    <div 
+      id="mobile-menu"
+      class="md:hidden fixed inset-0 bg-cream/98 backdrop-blur-md z-40 flex flex-col items-center justify-center gap-8 opacity-0 pointer-events-none transition-opacity duration-300"
+    >
+      <a href="/" class="text-2xl font-serif text-ink hover:text-accent">首页</a>
+      <a href="/archives" class="text-2xl font-serif text-ink hover:text-accent">归档</a>
+      <a href="/tags" class="text-2xl font-serif text-ink hover:text-accent">标签</a>
+      <a href="/about" class="text-2xl font-serif text-ink hover:text-accent">关于</a>
+      <button id="close-menu" class="absolute top-6 right-6 text-3xl text-ink-light w-12 h-12 flex items-center justify-center hover:bg-cream-dark rounded-lg transition-all">&times;</button>
+    </div>
+    
+    <!-- 主要内容 -->
+    <main class="flex-1">
+      <slot />
+    </main>
+    
+    <!-- 页脚 -->
+    <footer class="py-10 mt-16">
+      <div class="max-w-5xl mx-auto px-6 lg:px-8">
+        <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+          <!-- Logo和版权 -->
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-full bg-gradient-to-br from-accent to-accent-light flex items-center justify-center text-white shadow-md" style="font-family: 'Source Serif 4', serif; font-size: 1.1rem; line-height: 1;">
+              落
+            </div>
+            <p class="text-sm text-gray-600 dark:text-gray-400">
+              © 2026 落秋笔记
+            </p>
+          </div>
+          
+          <!-- ICP备案号 - 居中显示 -->
+          <a 
+            href="http://beian.miit.gov.cn/" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            class="flex items-center gap-2 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-accent dark:hover:text-accent-light transition-colors"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+            </svg>
+            <span>陕ICP备2026007027号-1</span>
+          </a>
+          
+          <!-- 社交链接 -->
+          <div class="flex items-center gap-4">
+            <a href="https://github.com/LuoQiu-LQ" target="_blank" rel="noopener noreferrer" class="social-btn group p-2.5 text-gray-600 dark:text-gray-300 rounded-lg transition-all duration-300" aria-label="GitHub">
+              <svg class="w-5 h-5 transition-colors duration-300" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+              </svg>
+            </a>
+            <a href="https://t.me/l58023" target="_blank" rel="noopener noreferrer" class="social-btn group p-2.5 text-gray-600 dark:text-gray-300 rounded-lg transition-all duration-300" aria-label="Telegram">
+              <svg class="w-5 h-5 transition-colors duration-300" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.161c-.18 1.897-.962 6.502-1.359 8.627-.168.9-.5 1.201-.82 1.23-.697.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.751-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
+              </svg>
+            </a>
+            <a href="mailto:00510liu@gmail.com" class="social-btn group p-2.5 text-gray-600 dark:text-gray-300 rounded-lg transition-all duration-300" aria-label="邮箱">
+              <svg class="w-5 h-5 transition-colors duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+            </a>
+          </div>
+        </div>
+      </div>
+    </footer>
+    
+    <!-- 返回顶部按钮 -->
+    <button 
+      id="back-to-top"
+      class="back-to-top"
+      aria-label="返回顶部"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+      </svg>
+    </button>
+    
+    <!-- 搜索模态框 -->
+    <div id="search-modal" class="search-modal">
+      <div class="search-input-container w-full max-w-2xl mx-4">
+        <div class="relative">
+          <input 
+            type="text" 
+            id="sea rch-input"
+            class="w-full bg-white dark:bg-[#1a1a1a] rounded-2xl shadow-2xl p-5 text-lg border border-cream-dark focus:border-accent outline-none transition-colors"
+            placeholder="搜索文章... (按 ESC 关闭)"
+            autocomplete="off"
+          />
+          <kbd class="absolute right-5 top-1/2 -translate-y-1/2 px-3 py-1.5 text-sm bg-cream-dark rounded-lg text-ink-light">ESC</kbd>
+        </div>
+        <div id="search-results" class="mt-4 bg-white dark:bg-[#1a1a1a] rounded-2xl shadow-2xl max-h-96 overflow-y-auto"></div>
+      </div>
+    </div>
+    
+    <!-- 暗色模式切换脚本 -->
+    <script is:inline>
+      function initThemeToggle() {
+        const toggle = document.getElementById('theme-toggle')
+        const sunIcon = document.getElementById('sun-icon')
+        const moonIcon = document.getElementById('moon-icon')
+        
+        if (!toggle) return
+        
+        // 初始化图标状态
+        const isDark = document.documentElement.classList.contains('dark')
+        if (isDark) {
+          sunIcon?.classList.add('hidden')
+          moonIcon?.classList.remove('hidden')
+        } else {
+          sunIcon?.classList.remove('hidden')
+          moonIcon?.classList.add('hidden')
+        }
+        
+        // 移除旧的事件监听器（防止重复绑定）
+        const newToggle = toggle.cloneNode(true)
+        toggle.parentNode?.replaceChild(newToggle, toggle)
+        
+        newToggle.addEventListener('click', () => {
+          const isDark = document.documentElement.classList.toggle('dark')
+          localStorage.setItem('theme', isDark ? 'dark' : 'light')
+          
+          const newSunIcon = document.getElementById('sun-icon')
+          const newMoonIcon = document.getElementById('moon-icon')
+          
+          if (newSunIcon && newMoonIcon) {
+            newSunIcon.style.transform = 'rotate(180deg)'
+            newMoonIcon.style.transform = 'rotate(-180deg)'
+            
+            if (isDark) {
+              newSunIcon.classList.add('hidden')
+              newMoonIcon.classList.remove('hidden')
+            } else {
+              newSunIcon.classList.remove('hidden')
+              newMoonIcon.classList.add('hidden')
+            }
+            
+            setTimeout(() => {
+              newSunIcon.style.transform = 'rotate(0deg)'
+              newMoonIcon.style.transform = 'rotate(0deg)'
+            }, 300)
+          }
+        })
+      }
+      
+      // 页面加载时和 View Transitions 完成后初始化
+      initThemeToggle()
+      document.addEventListener('astro:page-load', initThemeToggle)
+    </script>
+    
+    <!-- 阅读进度和返回顶部脚本 -->
+    <script is:inline>
+      function initScrollHandlers() {
+        const progressBar = document.getElementById('reading-progress')
+        const backToTop = document.getElementById('back-to-top')
+        
+        if (!progressBar || !backToTop) return
+        
+        const updateProgress = () => {
+          const scrollTop = document.documentElement.scrollTop
+          const scrollHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight
+          const progress = (scrollTop / scrollHeight) * 100
+          progressBar.style.width = `${progress}%`
+          
+          if (scrollTop > 300) {
+            backToTop.classList.add('visible')
+          } else {
+            backToTop.classList.remove('visible')
+          }
+        }
+        
+        window.addEventListener('scroll', updateProgress)
+        
+        const newBackToTop = backToTop.cloneNode(true)
+        backToTop.parentNode?.replaceChild(newBackToTop, backToTop)
+        newBackToTop.addEventListener('click', () => {
+          window.scrollTo({ top: 0, behavior: 'smooth' })
+        })
+      }
+      
+      initScrollHandlers()
+      document.addEventListener('astro:page-load', initScrollHandlers)
+    </script>
+    
+    <!-- 搜索功能脚本 -->
+    <script is:inline>
+      function initSearch() {
+        const searchBtn = document.getElementById('search-btn')
+        const searchModal = document.getElementById('search-modal')
+        const searchInput = document.getElementById('search-input')
+        const searchResults = document.getElementById('search-results')
+        
+        if (!searchBtn || !searchModal) return
+        
+        const bindSearchEvents = () => {
+          const btn = document.getElementById('search-btn')
+          const modal = document.getElementById('search-modal')
+          const input = document.getElementById('search-input')
+          const results = document.getElementById('search-results')
+          
+          btn?.addEventListener('click', () => {
+            modal?.classList.add('active')
+            input?.focus()
+          })
+          
+          const closeSearch = () => {
+            modal?.classList.remove('active')
+            if (input) input.value = ''
+            if (results) results.innerHTML = ''
+          }
+          
+          document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeSearch()
+            if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+              e.preventDefault()
+              modal?.classList.add('active')
+              input?.focus()
+            }
+          })
+          
+          modal?.addEventListener('click', (e) => {
+            if (e.target === modal) closeSearch()
+          })
+          
+          input?.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase().trim()
+            const resDiv = document.getElementById('search-results')
+            if (!query) {
+              if (resDiv) resDiv.innerHTML = ''
+              return
+            }
+            
+            const results_data = window.searchData.filter(post => 
+              post.title.toLowerCase().includes(query) ||
+              post.description.toLowerCase().includes(query) ||
+              post.tags.some(tag => tag.toLowerCase().includes(query))
+            )
+            
+            if (resDiv) {
+              if (results_data.length === 0) {
+                resDiv.innerHTML = '<div class="p-6 text-center text-ink-light">没有找到相关文章</div>'
+              } else {
+                resDiv.innerHTML = results_data.map(post => `
+                  <a href="/posts/${post.id}" class="block p-5 hover:bg-cream-dark dark:hover:bg-[#252525] transition-colors border-b border-cream-dark last:border-b-0">
+                    <div class="font-medium text-ink dark:text-white text-lg">${post.title}</div>
+                    <div class="text-sm text-ink-light mt-2">${post.description}</div>
+                    <div class="flex gap-2 mt-3">
+                      ${post.tags.map(tag => `<span class="text-xs px-2.5 py-1 bg-cream-dark dark:bg-[#2a2a2a] rounded-lg">${tag}</span>`).join('')}
+                    </div>
+                  </a>
+                `).join('')
+              }
+            }
+          })
+        }
+        
+        bindSearchEvents()
+      }
+      
+      initSearch()
+      document.addEventListener('astro:page-load', initSearch)
+    </script>
+    
+    <!-- 移动端菜单脚本 -->
+    <script is:inline>
+      function initMobileMenu() {
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn')
+        const mobileMenu = document.getElementById('mobile-menu')
+        const closeMenuBtn = document.getElementById('close-menu')
+        
+        if (!mobileMenuBtn || !mobileMenu) return
+        
+        const bindMenuEvents = () => {
+          const btn = document.getElementById('mobile-menu-btn')
+          const menu = document.getElementById('mobile-menu')
+          const closeBtn = document.getElementById('close-menu')
+          
+          btn?.addEventListener('click', () => {
+            menu?.classList.remove('opacity-0', 'pointer-events-none')
+            menu?.classList.add('opacity-100')
+          })
+          
+          closeBtn?.addEventListener('click', () => {
+            menu?.classList.add('opacity-0', 'pointer-events-none')
+            menu?.classList.remove('opacity-100')
+          })
+          
+          menu?.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', () => {
+              menu?.classList.add('opacity-0', 'pointer-events-none')
+              menu?.classList.remove('opacity-100')
+            })
+          })
+        }
+        
+        bindMenuEvents()
+      }
+      
+      initMobileMenu()
+      document.addEventListener('astro:page-load', initMobileMenu)
+    </script>
+  </body>
+</html>

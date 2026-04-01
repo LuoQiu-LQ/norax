@@ -1,0 +1,148 @@
+---
+import Layout from './Layout.astro'
+
+interface Props {
+  title: string
+  postId: string
+  date: string
+  tags?: string[]
+  description?: string
+}
+
+const { title, postId, date, tags = [], description } = Astro.props
+
+const formatDate = (dateStr: string) => {
+  return new Date(dateStr).toLocaleDateString('zh-CN', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  })
+}
+
+// 计算阅读时间
+const getReadingTime = (content: string) => {
+  const minutes = Math.ceil(content.length / 400)
+  return minutes
+}
+---
+
+<Layout title={`${title} - 墨白`} description={description}>
+  <article class="max-w-3xl mx-auto px-6 py-12 md:py-16">
+    <!-- 返回链接 -->
+    <nav class="mb-12 opacity-0 animate-fade-in">
+      <a 
+        href="/"
+        class="inline-flex items-center gap-2 text-sm text-ink-light hover:text-accent transition-colors group"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 transform group-hover:-translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+        </svg>
+        <span>返回首页</span>
+      </a>
+    </nav>
+    
+    <!-- 文章头部 -->
+    <header class="mb-12 text-center">
+      {tags.length > 0 && (
+        <div class="flex justify-center gap-2 mb-6 opacity-0 animate-fade-in" style="animation-delay: 0.1s; animation-fill-mode: forwards;">
+          {tags.map(tag => (
+            <a 
+              href={`/tags/${tag}`}
+              class="text-xs font-medium text-accent bg-accent/10 px-3 py-1 rounded-full hover:bg-accent hover:text-white transition-colors"
+            >
+              {tag}
+            </a>
+          ))}
+        </div>
+      )}
+      
+      <h1 transition:name={`title-${postId}`} class="text-3xl md:text-4xl lg:text-5xl font-serif font-bold text-ink mb-6 leading-tight opacity-0 animate-fade-in" style="animation-delay: 0.2s; animation-fill-mode: forwards;">
+        {title}
+      </h1>
+      
+      <div class="flex items-center justify-center gap-6 text-sm text-ink-light opacity-0 animate-fade-in" style="animation-delay: 0.3s; animation-fill-mode: forwards;">
+        <time datetime={date}>{formatDate(date)}</time>
+        <span class="w-1 h-1 rounded-full bg-ink-light/50"></span>
+        <span>约 {getReadingTime(description || '')} 分钟阅读</span>
+      </div>
+      
+      <div class="w-16 h-0.5 bg-accent mx-auto mt-8 opacity-0 animate-fade-in" style="animation-delay: 0.4s; animation-fill-mode: forwards;"></div>
+    </header>
+    
+    <!-- 文章内容 -->
+    <div class="prose prose-lg mx-auto opacity-0 animate-fade-in" style="animation-delay: 0.5s; animation-fill-mode: forwards;">
+      <slot />
+    </div>
+    
+    <!-- 文章底部 -->
+    <footer class="mt-16 pt-8 border-t border-cream-dark">
+      <!-- 标签 -->
+      {tags.length > 0 && (
+        <div class="mb-8">
+          <div class="text-sm text-ink-light mb-3">标签</div>
+          <div class="flex flex-wrap gap-2">
+            {tags.map(tag => (
+              <a 
+                href={`/tags/${tag}`}
+                class="text-sm text-ink-light bg-cream-dark px-3 py-1 rounded hover:bg-accent/20 hover:text-accent transition-colors"
+              >
+                #{tag}
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
+      
+      <!-- 分享 -->
+      <div class="mb-8">
+        <div class="text-sm text-ink-light mb-3">分享</div>
+        <div class="flex gap-4">
+          <button 
+            onclick={`navigator.clipboard.writeText(window.location.href)`}
+            class="flex items-center gap-2 text-sm text-ink-light bg-cream-dark px-4 py-2 rounded hover:bg-accent/20 hover:text-accent transition-colors"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+            </svg>
+            <span>复制链接</span>
+          </button>
+        </div>
+      </div>
+      
+      <!-- 返回 -->
+      <a 
+        href="/"
+        class="inline-flex items-center gap-2 text-sm text-ink-light hover:text-accent transition-colors group"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 transform group-hover:-translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+        </svg>
+        <span>返回首页</span>
+      </a>
+    </footer>
+  </article>
+</Layout>
+
+<style is:global>
+  .dark h1 {
+    color: #e8e8e8;
+  }
+  .dark header h1 {
+    color: #e8e8e8;
+  }
+  
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .animate-fade-in {
+    animation: fade-in 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  }
+</style>

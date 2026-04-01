@@ -1,0 +1,188 @@
+---
+import Layout from '../layouts/Layout.astro'
+---
+
+<Layout title="关于我 - 落秋笔记" description="了解落秋笔记的创作者和故事">
+  <section class="max-w-3xl mx-auto px-6 py-16 md:py-24">
+    <!-- 头像和简介 -->
+    <header class="text-center mb-16">
+      <div class="relative inline-block mb-8">
+        <div class="w-32 h-32 md:w-40 md:h-40 mx-auto rounded-full overflow-hidden border-4 border-cream-dark shadow-xl">
+          <div class="w-full h-full bg-gradient-to-br from-accent to-accent-light flex items-center justify-center">
+            <span class="text-5xl md:text-6xl">👨‍💻</span>
+          </div>
+        </div>
+        <!-- 装饰圆圈 -->
+        <div class="absolute -inset-4 border-2 border-accent/20 rounded-full -z-10"></div>
+        <div class="absolute -inset-8 border border-accent/10 rounded-full -z-10"></div>
+      </div>
+      
+      <h1 class="text-3xl md:text-4xl font-serif font-bold text-ink mb-4">
+        你好，我是落秋
+      </h1>
+      
+      <p class="text-ink-light max-w-lg mx-auto leading-relaxed">
+        这个博客是我的数字花园，用来记录思考、分享感悟
+      </p>
+    </header>
+    
+    <!-- 关于博客 -->
+    <section class="mb-16">
+      <div class="flex items-center gap-4 mb-8">
+        <div class="w-12 h-0.5 bg-accent"></div>
+        <h2 class="text-xl font-serif font-semibold text-ink">关于博客</h2>
+      </div>
+      
+      <div class="prose prose-lg">
+        <p>
+          「落秋笔记」这个名字源自秋叶飘落的诗意——在数字世界里用心记录每一个思考的瞬间。
+          我希望这个博客也能像秋日的落叶一样，简洁而富有韵味，记录四季的变换与成长的足迹。
+        </p>
+        
+        <p>
+          在这里，你会看到：
+        </p>
+        
+        <ul>
+          <li>📚 <strong>技术分享</strong> — 前端开发、系统设计的心得</li>
+          <li>💡 <strong>生活感悟</strong> — 对生活的思考与观察</li>
+          <li>📖 <strong>读书笔记</strong> — 阅读中获得的启发</li>
+          <li>✈️ <strong>旅行随笔</strong> — 旅途中的所见所闻</li>
+        </ul>
+      </div>
+    </section>
+    
+    <!-- 技术栈 -->
+    <section class="mb-16">
+      <div class="flex items-center gap-4 mb-8">
+        <div class="w-12 h-0.5 bg-accent"></div>
+        <h2 class="text-xl font-serif font-semibold text-ink">技术栈</h2>
+      </div>
+      
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="p-6 bg-cream-dark rounded-xl text-center hover:shadow-lg transition-shadow">
+          <div class="text-2xl mb-2">⚡</div>
+          <div class="font-medium text-ink">Astro</div>
+          <div class="text-xs text-ink-light mt-1">静态网站</div>
+        </div>
+        <div class="p-6 bg-cream-dark rounded-xl text-center hover:shadow-lg transition-shadow">
+          <div class="text-2xl mb-2">🎨</div>
+          <div class="font-medium text-ink">Tailwind</div>
+          <div class="text-xs text-ink-light mt-1">样式框架</div>
+        </div>
+        <div class="p-6 bg-cream-dark rounded-xl text-center hover:shadow-lg transition-shadow">
+          <div class="text-2xl mb-2">📝</div>
+          <div class="font-medium text-ink">Markdown</div>
+          <div class="text-xs text-ink-light mt-1">内容写作</div>
+        </div>
+        <div class="p-6 bg-cream-dark rounded-xl text-center hover:shadow-lg transition-shadow">
+          <div class="text-2xl mb-2">🚀</div>
+          <div class="font-medium text-ink">Vercel</div>
+          <div class="text-xs text-ink-light mt-1">部署托管</div>
+        </div>
+      </div>
+    </section>
+    
+    <!-- 联系方式 -->
+    <section class="mb-16">
+      <div class="flex items-center gap-4 mb-8">
+        <div class="w-12 h-0.5 bg-accent"></div>
+        <h2 class="text-xl font-serif font-semibold text-ink">联系我</h2>
+      </div>
+      
+      <div class="bg-cream-dark rounded-2xl p-8">
+        <p class="text-ink-light mb-6 leading-relaxed">
+          如果你有任何想法、建议或合作意向，欢迎通过以下方式与我取得联系：
+        </p>
+        
+        <div class="space-y-4">
+          <a 
+            href="mailto:00510liu@gmail.com" 
+            class="flex items-center gap-4 p-4 bg-white rounded-xl hover:shadow-md transition-shadow group"
+          >
+            <div class="w-12 h-12 bg-accent/10 rounded-full flex items-center justify-center text-accent group-hover:bg-accent group-hover:text-white transition-colors">
+              <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <div>
+              <div class="font-medium text-ink">电子邮件</div>
+              <div class="text-sm text-ink-light">00510liu@gmail.com</div>
+            </div>
+          </a>
+          
+          <a 
+            href="https://github.com/LuoQiu-LQ" 
+            target="_blank"
+            rel="noopener noreferrer"
+            class="flex items-center gap-4 p-4 bg-white rounded-xl hover:shadow-md transition-shadow group"
+          >
+            <div class="w-12 h-12 bg-accent/10 rounded-full flex items-center justify-center text-accent group-hover:bg-accent group-hover:text-white transition-colors">
+              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+              </svg>
+            </div>
+            <div>
+              <div class="font-medium text-ink">GitHub</div>
+              <div class="text-sm text-ink-light">github.com/LuoQiu-LQ</div>
+            </div>
+          </a>
+          
+          <a 
+            href="https://t.me/l58023" 
+            target="_blank"
+            rel="noopener noreferrer"
+            class="flex items-center gap-4 p-4 bg-white rounded-xl hover:shadow-md transition-shadow group"
+          >
+            <div class="w-12 h-12 bg-accent/10 rounded-full flex items-center justify-center text-accent group-hover:bg-accent group-hover:text-white transition-colors">
+              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.161c-.18 1.897-.962 6.502-1.359 8.627-.168.9-.5 1.201-.82 1.23-.697.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.751-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
+              </svg>
+            </div>
+            <div>
+              <div class="font-medium text-ink">Telegram</div>
+              <div class="text-sm text-ink-light">@l58023</div>
+            </div>
+          </a>
+        </div>
+      </div>
+    </section>
+    
+    <!-- 底部语 -->
+    <section class="text-center py-8 border-t border-cream-dark">
+      <blockquote class="text-lg text-ink-light italic">
+        "生活不止眼前的苟且，还有诗和远方。"
+      </blockquote>
+      <p class="text-sm text-ink-light/60 mt-4">
+        感谢你的来访，期待与你交流。
+      </p>
+    </section>
+  </section>
+</Layout>
+
+<style is:global>
+  .dark h1 {
+    color: #e8e8e8;
+  }
+  .dark h2 {
+    color: #e8e8e8;
+  }
+  .dark .prose p {
+    color: #a0a0a0;
+  }
+  .dark .prose li {
+    color: #a0a0a0;
+  }
+  .dark blockquote {
+    color: #a0a0a0;
+  }
+  .dark .bg-cream-dark {
+    background-color: #252525;
+  }
+  .dark .bg-white {
+    background-color: #2a2a2a;
+  }
+  .dark .border-cream-dark {
+    border-color: #3a3a3a;
+  }
+</style>

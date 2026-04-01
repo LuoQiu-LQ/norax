@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+/.pnpm-store
+/package-lock.json
+/pnpm-lock.yaml
+/yarn.lock
+
+# Build & Tooling
+dist/
+.astro/
+.cache/
+
+# Platforms
+.vercel/
+.netlify/
+
+# Environment Variables (CRITICAL)
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+npm-debug.log*
+
+# Cursor & IDEs
+.cursor/
+.vscode/
+.history/
+
+# OS files
+.DS_Store
+Thumbs.db

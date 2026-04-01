@@ -1,0 +1,295 @@
+---
+import Layout from '../layouts/Layout.astro'
+import { getCollection } from 'astro:content'
+
+const posts = await getCollection('posts')
+const sortedPosts = posts.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
+
+const formatDate = (date: Date) => {
+  return date.toLocaleDateString('zh-CN', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  })
+}
+
+const getReadingTime = (content: string) => {
+  const minutes = Math.ceil(content.length / 400)
+  return minutes
+}
+---
+
+<Layout title="落秋笔记 - 记录与思考">
+  <!-- 英雄区域 -->
+  <section class="max-w-4xl mx-auto px-6 py-24 md:py-32 text-center relative overflow-hidden">
+    <!-- 装饰性背景 -->
+    <div class="absolute inset-0 pointer-events-none">
+      <div class="absolute top-20 left-1/4 w-64 h-64 bg-accent/5 rounded-full blur-3xl"></div>
+      <div class="absolute bottom-20 right-1/4 w-48 h-48 bg-accent/5 rounded-full blur-3xl"></div>
+    </div>
+    
+    <div class="relative z-10">
+      <p class="text-sm tracking-[0.3em] text-accent/80 uppercase mb-4 opacity-0 animate-fade-in" style="animation-delay: 0.2s; animation-fill-mode: forwards;">
+        Welcome
+      </p>
+      
+      <h1 class="text-6xl md:text-7xl lg:text-8xl font-serif font-bold text-ink mb-8 opacity-0 animate-fade-in" style="animation-delay: 0.4s; animation-fill-mode: forwards;">
+        落秋笔记
+      </h1>
+      
+      <div class="w-16 h-0.5 bg-accent mx-auto mb-8 opacity-0 animate-fade-in" style="animation-delay: 0.6s; animation-fill-mode: forwards;"></div>
+      
+      <p class="text-lg md:text-xl text-ink-light max-w-xl mx-auto leading-relaxed opacity-0 animate-fade-in" style="animation-delay: 0.8s; animation-fill-mode: forwards;">
+        在纷繁的世界里，<br class="hidden md:block" />
+        用文字记录生活的点滴。
+      </p>
+      
+      <!-- 打字机效果 -->
+      <div class="mt-10 h-8 opacity-0 animate-fade-in" style="animation-delay: 1s; animation-fill-mode: forwards;">
+        <span id="typewriter" class="text-base md:text-lg text-accent font-serif"></span>
+      </div>
+    </div>
+    
+    <!-- 向下滚动提示 -->
+    <div class="absolute bottom-8 left-1/2 -translate-x-1/2 opacity-0 animate-fade-in" style="animation-delay: 1.5s; animation-fill-mode: forwards;">
+      <div class="flex flex-col items-center gap-2 text-ink-light/50">
+        <span class="text-xs tracking-wider">SCROLL</span>
+        <div class="w-px h-8 bg-gradient-to-b from-ink-light/50 to-transparent"></div>
+      </div>
+    </div>
+  </section>
+  
+  <!-- 精选文章 -->
+  <section class="max-w-4xl mx-auto px-6 mb-16">
+    <div class="text-center mb-12">
+      <h2 class="text-sm font-sans font-semibold text-accent uppercase tracking-widest">
+        Featured
+      </h2>
+      <div class="w-8 h-0.5 bg-ink-light/30 mx-auto mt-4"></div>
+    </div>
+    
+    {sortedPosts.slice(0, 2).map((post, index) => (
+      <article class="group mb-8 opacity-0 animate-slide-up" style={`animation-delay: ${index * 0.15}s; animation-fill-mode: forwards;`}>
+        <a href={`/posts/${post.id}`} class="featured-card block relative overflow-hidden rounded-2xl p-8 md:p-12 transition-all duration-500 hover:shadow-2xl bg-cream border border-cream-dark">
+          <!-- 装饰性图案 -->
+          <div class="absolute top-0 right-0 w-32 h-32 bg-accent/5 rounded-full -translate-y-1/2 translate-x-1/2 group-hover:scale-150 transition-transform duration-500"></div>
+          
+          <div class="relative z-10">
+            {post.data.tags && post.data.tags.length > 0 && (
+              <div class="flex gap-2 mb-4">
+                {post.data.tags.slice(0, 2).map(tag => (
+                  <span class="text-xs font-medium text-accent bg-accent/10 px-3 py-1 rounded-full">
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            )}
+            
+            <h3 transition:name={`title-${post.id}`} class="text-2xl md:text-3xl font-serif font-semibold text-ink mb-4 group-hover:text-accent transition-colors duration-300">
+              {post.data.title}
+            </h3>
+            
+            <p class="text-ink-light leading-relaxed mb-6 line-clamp-2">
+              {post.data.description}
+            </p>
+            
+            <div class="flex items-center gap-6 text-sm text-ink-light/70">
+              <time>{formatDate(post.data.date)}</time>
+              <span class="w-1 h-1 rounded-full bg-ink-light/30"></span>
+              <span>{getReadingTime(post.data.description)} 分钟阅读</span>
+            </div>
+          </div>
+        </a>
+      </article>
+    ))}
+  </section>
+  
+  <!-- 所有文章 -->
+  <section class="max-w-4xl mx-auto px-6 pb-24">
+    <div class="text-center mb-12">
+      <h2 class="text-sm font-sans font-semibold text-ink-light uppercase tracking-widest">
+        All Posts
+      </h2>
+      <div class="w-8 h-0.5 bg-ink-light/30 mx-auto mt-4"></div>
+    </div>
+    
+    <div class="space-y-6">
+      {sortedPosts.map((post, index) => (
+        <article class="group opacity-0 animate-slide-up" style={`animation-delay: ${index * 0.1}s; animation-fill-mode: forwards;`}>
+          <a 
+            href={`/posts/${post.id}`} 
+            class="post-list-item flex flex-col md:flex-row md:items-center gap-4 p-6 rounded-xl border border-transparent hover:border-cream-dark transition-all duration-300"
+          >
+            <div class="flex-1">
+              <div class="flex flex-wrap items-center gap-3 mb-2">
+                <time class="text-sm text-ink-light">{formatDate(post.data.date)}</time>
+                
+                {post.data.tags && post.data.tags.length > 0 && (
+                  <>
+                    <span class="hidden md:inline text-ink-light/30">·</span>
+                    {post.data.tags.slice(0, 2).map(tag => (
+                      <span class="text-xs text-ink-light/70 bg-cream-dark px-2 py-0.5 rounded">
+                        {tag}
+                      </span>
+                    ))}
+                  </>
+                )}
+              </div>
+              
+              <h3 transition:name={`title-${post.id}`} class="text-lg font-serif font-medium text-ink group-hover:text-accent transition-colors duration-300">
+                {post.data.title}
+              </h3>
+              
+              <p class="text-sm text-ink-light mt-2 line-clamp-1">
+                {post.data.description}
+              </p>
+            </div>
+            
+            <div class="flex items-center gap-2 text-accent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              <span class="text-sm">阅读</span>
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 transform group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+              </svg>
+            </div>
+          </a>
+        </article>
+      ))}
+    </div>
+  </section>
+</Layout>
+
+<style is:global>
+  .dark h1 {
+    color: #e8e8e8;
+  }
+  .dark h3 {
+    color: #e8e8e8;
+  }
+  .dark a:hover h3 {
+    color: var(--color-accent-light);
+  }
+  .dark .group:hover {
+    background: rgba(255, 255, 255, 0.05);
+  }
+  
+  /* All Posts 区域暗色模式悬浮效果 */
+  .dark .post-list-item {
+    border-color: transparent;
+  }
+  
+  .dark .post-list-item:hover {
+    border-color: #333333;
+    background-color: rgba(255, 255, 255, 0.03);
+  }
+  
+  .dark .post-list-item:hover h3 {
+    color: #a69076;
+  }
+  
+  /* Featured 卡片暗色模式 */
+  .dark .featured-card {
+    background: linear-gradient(135deg, #1e1e1e 0%, #252525 100%) !important;
+    border-color: #333333;
+  }
+  
+  .dark .featured-card h3 {
+    color: #e8e8e8;
+  }
+  
+  .dark .featured-card p {
+    color: #a0a0a0;
+  }
+  
+  .dark .featured-card .text-ink-light\/70 {
+    color: #808080;
+  }
+  
+  .dark .featured-card .bg-accent\/10 {
+    background-color: rgba(166, 144, 118, 0.15);
+  }
+  
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  @keyframes slide-up {
+    from {
+      opacity: 0;
+      transform: translateY(40px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .animate-fade-in {
+    animation: fade-in 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .animate-slide-up {
+    animation: slide-up 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .line-clamp-1 {
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+</style>
+
+<script is:inline>
+  const phrases = [
+    '「少即是多」',
+    '「记录生活，感悟人生」',
+    '「在文字中寻找答案」',
+    '「简单即美」'
+  ];
+  
+  let phraseIndex = 0;
+  let charIndex = 0;
+  let isDeleting = false;
+  const typewriter = document.getElementById('typewriter');
+  
+  const type = () => {
+    const currentPhrase = phrases[phraseIndex];
+    
+    if (isDeleting) {
+      typewriter.textContent = currentPhrase.substring(0, charIndex - 1);
+      charIndex--;
+    } else {
+      typewriter.textContent = currentPhrase.substring(0, charIndex + 1);
+      charIndex++;
+    }
+    
+    let typeSpeed = isDeleting ? 30 : 80;
+    
+    if (!isDeleting && charIndex === currentPhrase.length) {
+      typeSpeed = 2500;
+      isDeleting = true;
+    } else if (isDeleting && charIndex === 0) {
+      isDeleting = false;
+      phraseIndex = (phraseIndex + 1) % phrases.length;
+      typeSpeed = 400;
+    }
+    
+    setTimeout(type, typeSpeed);
+  };
+  
+  setTimeout(type, 1500);
+</script>
