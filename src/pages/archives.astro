@@ -5,46 +5,53 @@ import { getCollection } from 'astro:content'
 const posts = await getCollection('posts')
 const sortedPosts = posts.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
 
-// 按年份分组
+// 静态按年份分组 (默认显示)
 const postsByYear = sortedPosts.reduce((acc, post) => {
   const year = post.data.date.getFullYear().toString()
-  if (!acc[year]) {
-    acc[year] = []
-  }
+  if (!acc[year]) acc[year] = []
   acc[year].push(post)
   return acc
 }, {} as Record<string, typeof posts>)
 
 const formatDate = (date: Date) => {
-  return date.toLocaleDateString('zh-CN', {
-    month: 'long',
-    day: 'numeric'
-  })
+  return date.toLocaleDateString('zh-CN', { month: 'long', day: 'numeric' })
 }
 
 const years = Object.keys(postsByYear).sort((a, b) => Number(b) - Number(a))
 ---
 
-<Layout title="归档 - 墨白" description="所有文章按时间归档">
+<Layout title="归档 - 落秋笔记" description="所有文章按时间归档">
   <section class="max-w-4xl mx-auto px-6 py-12">
     <header class="mb-12 text-center">
       <h1 class="text-3xl font-serif font-semibold text-ink mb-4">归档</h1>
       <p class="text-ink-light">共 {posts.length} 篇文章</p>
     </header>
     
-    <div class="space-y-12">
+    <div class="mb-12">
+      <div class="relative max-w-md mx-auto">
+        <input 
+          type="text" 
+          id="archive-search-input" 
+          placeholder="向数据库动态检索文章..." 
+          class="w-full px-4 py-3 pl-12 rounded-xl border border-cream-dark bg-cream text-ink focus:outline-none focus:border-accent transition-colors shadow-sm"
+          autocomplete="off"
+        >
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-ink-light absolute left-4 top-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+      </div>
+    </div>
+
+    <div id="static-list" class="space-y-12">
       {years.map(year => (
         <div>
-          <h2 class="text-xl font-serif font-semibold text-accent mb-6 sticky top-20 bg-cream/80 backdrop-blur-md py-2">
+          <h2 class="text-xl font-serif font-semibold text-accent mb-6 sticky top-20 bg-cream/80 backdrop-blur-md py-2 z-10">
             {year}
           </h2>
           <div class="space-y-4">
             {postsByYear[year].map(post => (
-              <a 
-                href={`/posts/${post.id}`}
-                class="flex items-start gap-4 group"
-              >
-                <span class="text-sm text-ink-light shrink-0 pt-1">
+              <a href={`/posts/${post.id}`} class="flex items-start gap-4 group">
+                <span class="text-sm text-ink-light shrink-0 pt-1 w-16">
                   {formatDate(post.data.date)}
                 </span>
                 <span class="text-ink group-hover:text-accent transition-colors">
@@ -56,18 +63,60 @@ const years = Object.keys(postsByYear).sort((a, b) => Number(b) - Number(a))
         </div>
       ))}
     </div>
+
+    <div id="search-results" class="hidden space-y-6"></div>
   </section>
 </Layout>
 
+<script is:inline>
+  const searchInput = document.getElementById('archive-search-input');
+  const staticList = document.getElementById('static-list');
+  const searchResults = document.getElementById('search-results');
+  let debounceTimer;
+
+  if (searchInput) {
+    searchInput.addEventListener('input', (e) => {
+      clearTimeout(debounceTimer);
+      const query = e.target.value.trim();
+
+      // 如果清空了输入框，恢复静态列表
+      if (!query) {
+        if(staticList) staticList.classList.remove('hidden');
+        if(searchResults) searchResults.classList.add('hidden');
+        return;
+      }
+
+      // 防抖请求后端接口
+      debounceTimer = setTimeout(() => {
+        fetch(`/api/search?q=${encodeURIComponent(query)}`)
+          .then(r => r.json())
+          .then(data => {
+            if(staticList) staticList.classList.add('hidden');
+            if(searchResults) searchResults.classList.remove('hidden');
+            
+            if (data.length === 0) {
+              searchResults.innerHTML = '<p class="text-ink-light text-center py-8">数据库中未找到相关文章，换个关键词试试？</p>';
+              return;
+            }
+
+            searchResults.innerHTML = data.map(post => `
+              <a href="/posts/${post.slug}" class="block group p-4 rounded-xl border border-transparent hover:border-cream-dark hover:bg-cream-dark/50 transition-all">
+                <h3 class="text-lg font-serif font-medium text-ink group-hover:text-accent transition-colors mb-2">${post.title}</h3>
+                <p class="text-sm text-ink-light line-clamp-2">${post.summary}</p>
+                <div class="mt-3 flex gap-2">
+                  ${post.tags ? post.tags.split(',').map(t => `<span class="text-xs bg-cream-dark px-2 py-1 rounded text-ink-light">${t}</span>`).join('') : ''}
+                </div>
+              </a>
+            `).join('');
+          })
+          .catch(err => console.error("搜索请求失败", err));
+      }, 300); // 300ms 延迟
+    });
+  }
+</script>
+
 <style is:global>
-  .dark h1, .dark h2 {
-    color: #e8e8e8;
-  }
-  .dark h2.text-accent {
-    color: #a69076;
-  }
-  /* 修复归档页面年份标题的背景色 */
-  .dark h2.bg-cream\/80 {
-    background-color: rgba(18, 18, 18, 0.8) !important;
-  }
+  .dark h1, .dark h2 { color: #e8e8e8; }
+  .dark h2.text-accent { color: #a69076; }
+  .dark h2.bg-cream\/80 { background-color: rgba(18, 18, 18, 0.8) !important; }
 </style>

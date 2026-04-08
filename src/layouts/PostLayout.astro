@@ -173,7 +173,7 @@ const getReadingTime = (content: string) => {
 </Layout>
 
 <script define:vars={{ postId }}>
-  const API = 'http://luoqiu.xyz/api';
+  const API = '/api';
 
   // ── 浏览量 ──
   fetch(`${API}/views/${postId}`, { method: 'POST' })
