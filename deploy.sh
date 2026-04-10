@@ -22,7 +22,6 @@ echo "✅ 构建成功！"
 
 # 2. 在服务器上创建临时目录
 echo "📁 正在初始化服务器临时目录..."
-# 【修正】合并为一条命令，直接创建带子目录的结构，mkdir -p 会自动创建父目录
 ssh -p $SERVER_PORT $SERVER_USER@$SERVER_IP "rm -rf $TMP_PATH && mkdir -p $TMP_PATH/raw_posts"
 
 if [ $? -ne 0 ]; then
@@ -47,13 +46,27 @@ fi
 echo "✅ 上传成功！"
 
 # 4. 服务器上执行部署
-echo "🔧 正在部署到网站目录..."
+echo "🔧 正在部署到网站目录并同步后端..."
 ssh -p $SERVER_PORT $SERVER_USER@$SERVER_IP << EOF
-# 使用 sudo 确保权限，cp -r 会把 raw_posts 文件夹一并考入 REMOTE_PATH
-sudo cp -r $TMP_PATH/* $REMOTE_PATH/
+# 1. 确保目标目录存在
+sudo mkdir -p $REMOTE_PATH
+
+# 2. 【核心修复】先彻底清空线上目录的旧文件，防止幽灵文章和旧缓存残留
+sudo rm -rf $REMOTE_PATH/*
+
+# 3. 将临时目录的最新内容安全地同步过去 (-a 保留属性)
+sudo cp -ra $TMP_PATH/. $REMOTE_PATH/
+
+# 4. 赋予 Nginx 运行权限并重载服务
 sudo chown -R www-data:www-data $REMOTE_PATH/
 sudo nginx -s reload
+
+# 5. 清理临时文件夹
 rm -rf $TMP_PATH
+
+# 6. 【自动化闭环】重启后端程序，强制触发 SQLite 数据库清理逻辑
+cd /var/www/backend
+pm2 restart blog-backend || echo "⚠️ PM2 重启失败，请稍后手动检查"
 EOF
 
 if [ $? -ne 0 ]; then
@@ -62,4 +75,4 @@ if [ $? -ne 0 ]; then
 fi
 
 echo ""
-echo "🎉 部署完成！网站已更新：http://$SERVER_IP"
+echo "🎉 部署与数据同步全部完成！网站已更新：http://$SERVER_IP"
