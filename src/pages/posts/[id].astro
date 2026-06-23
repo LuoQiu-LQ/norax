@@ -20,6 +20,7 @@ const { Content } = await render(post)
   date={post.data.date.toISOString()}
   tags={post.data.tags}
   description={post.data.description}
+  body={post.body}
 >
   <Content />
 </PostLayout>

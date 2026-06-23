@@ -1,6 +1,7 @@
 ---
 import Layout from '../layouts/Layout.astro'
 import { getCollection } from 'astro:content'
+import { formatDateShort as formatDate } from '../utils/format'
 
 const posts = await getCollection('posts')
 const sortedPosts = posts.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
@@ -12,10 +13,6 @@ const postsByYear = sortedPosts.reduce((acc, post) => {
   acc[year].push(post)
   return acc
 }, {} as Record<string, typeof posts>)
-
-const formatDate = (date: Date) => {
-  return date.toLocaleDateString('zh-CN', { month: 'long', day: 'numeric' })
-}
 
 const years = Object.keys(postsByYear).sort((a, b) => Number(b) - Number(a))
 ---
@@ -68,11 +65,16 @@ const years = Object.keys(postsByYear).sort((a, b) => Number(b) - Number(a))
   </section>
 </Layout>
 
-<script is:inline>
+<script is:inline data-astro-rerun>
+(() => {
   const searchInput = document.getElementById('archive-search-input');
   const staticList = document.getElementById('static-list');
   const searchResults = document.getElementById('search-results');
   let debounceTimer;
+
+  const escapeHtml = (str) => String(str ?? '').replace(/[&<>"']/g, (c) => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[c]));
 
   if (searchInput) {
     searchInput.addEventListener('input', (e) => {
@@ -100,11 +102,11 @@ const years = Object.keys(postsByYear).sort((a, b) => Number(b) - Number(a))
             }
 
             searchResults.innerHTML = data.map(post => `
-              <a href="/posts/${post.slug}" class="block group p-4 rounded-xl border border-transparent hover:border-cream-dark hover:bg-cream-dark/50 transition-all">
-                <h3 class="text-lg font-serif font-medium text-ink group-hover:text-accent transition-colors mb-2">${post.title}</h3>
-                <p class="text-sm text-ink-light line-clamp-2">${post.summary}</p>
+              <a href="/posts/${encodeURIComponent(post.slug)}" class="block group p-4 rounded-xl border border-transparent hover:border-cream-dark hover:bg-cream-dark/50 transition-all">
+                <h3 class="text-lg font-serif font-medium text-ink group-hover:text-accent transition-colors mb-2">${escapeHtml(post.title)}</h3>
+                <p class="text-sm text-ink-light line-clamp-2">${escapeHtml(post.summary)}</p>
                 <div class="mt-3 flex gap-2">
-                  ${post.tags ? post.tags.split(',').map(t => `<span class="text-xs bg-cream-dark px-2 py-1 rounded text-ink-light">${t}</span>`).join('') : ''}
+                  ${post.tags ? post.tags.split(',').map(t => `<span class="text-xs bg-cream-dark px-2 py-1 rounded text-ink-light">${escapeHtml(t)}</span>`).join('') : ''}
                 </div>
               </a>
             `).join('');
@@ -113,6 +115,7 @@ const years = Object.keys(postsByYear).sort((a, b) => Number(b) - Number(a))
       }, 300); // 300ms 延迟
     });
   }
+})();
 </script>
 
 <style is:global>

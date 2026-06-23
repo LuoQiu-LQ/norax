@@ -1,6 +1,7 @@
 ---
 import Layout from '../../layouts/Layout.astro'
 import { getCollection } from 'astro:content'
+import { formatDate } from '../../utils/format'
 
 export async function getStaticPaths() {
   const posts = await getCollection('posts')
@@ -24,14 +25,6 @@ const posts = await getCollection('posts')
 const tagPosts = posts
   .filter(post => post.data.tags?.includes(tag))
   .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
-
-const formatDate = (date: Date) => {
-  return date.toLocaleDateString('zh-CN', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  })
-}
 ---
 
 <Layout title={`${tag} - 标签 - 墨白`} description={`标签 "${tag}" 下的所有文章`}>

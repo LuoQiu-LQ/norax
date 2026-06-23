@@ -1,5 +1,6 @@
 ---
 import Layout from './Layout.astro'
+import { formatDate, getReadingTime } from '../utils/format'
 
 interface Props {
   title: string
@@ -7,28 +8,15 @@ interface Props {
   date: string
   tags?: string[]
   description?: string
+  body?: string
 }
 
-const { title, postId, date, tags = [], description } = Astro.props
-
-const formatDate = (dateStr: string) => {
-  return new Date(dateStr).toLocaleDateString('zh-CN', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  })
-}
-
-// 计算阅读时间
-const getReadingTime = (content: string) => {
-  const minutes = Math.ceil(content.length / 400)
-  return minutes
-}
+const { title, postId, date, tags = [], description, body = '' } = Astro.props
+const readingTime = getReadingTime(body)
 ---
 
 <Layout title={`${title} - 墨白`} description={description}>
-  <article class="max-w-3xl mx-auto px-6 py-12 md:py-16">
-    <!-- 返回链接 -->
+  <article class="max-w-3xl mx-auto px-6 py-12 md:py-16" data-post-id={postId}>
     <nav class="mb-12 opacity-0 animate-fade-in">
       <a 
         href="/"
@@ -41,7 +29,6 @@ const getReadingTime = (content: string) => {
       </a>
     </nav>
     
-    <!-- 文章头部 -->
     <header class="mb-12 text-center">
       {tags.length > 0 && (
         <div class="flex justify-center gap-2 mb-6 opacity-0 animate-fade-in" style="animation-delay: 0.1s; animation-fill-mode: forwards;">
@@ -63,20 +50,17 @@ const getReadingTime = (content: string) => {
       <div class="flex items-center justify-center gap-6 text-sm text-ink-light opacity-0 animate-fade-in" style="animation-delay: 0.3s; animation-fill-mode: forwards;">
         <time datetime={date}>{formatDate(date)}</time>
         <span class="w-1 h-1 rounded-full bg-ink-light/50"></span>
-        <span>约 {getReadingTime(description || '')} 分钟阅读</span>
+        <span>约 {readingTime} 分钟阅读</span>
       </div>
       
       <div class="w-16 h-0.5 bg-accent mx-auto mt-8 opacity-0 animate-fade-in" style="animation-delay: 0.4s; animation-fill-mode: forwards;"></div>
     </header>
     
-    <!-- 文章内容 -->
     <div class="prose prose-lg mx-auto opacity-0 animate-fade-in" style="animation-delay: 0.5s; animation-fill-mode: forwards;">
       <slot />
     </div>
     
-    <!-- 文章底部 -->
     <footer class="mt-16 pt-8 border-t border-cream-dark">
-      <!-- 标签 -->
       {tags.length > 0 && (
         <div class="mb-8">
           <div class="text-sm text-ink-light mb-3">标签</div>
@@ -93,7 +77,6 @@ const getReadingTime = (content: string) => {
         </div>
       )}
       
-      <!-- 分享 -->
       <div class="mb-8">
         <div class="text-sm text-ink-light mb-3">分享</div>
         <div class="flex gap-4">
@@ -109,7 +92,6 @@ const getReadingTime = (content: string) => {
         </div>
       </div>
       
-      <!-- 返回 -->
       <a 
         href="/"
         class="inline-flex items-center gap-2 text-sm text-ink-light hover:text-accent transition-colors group"
@@ -121,25 +103,39 @@ const getReadingTime = (content: string) => {
       </a>
     </footer>
 
-    <!-- 浏览量统计 -->
-    <div class="mt-8 flex items-center gap-2 text-sm text-ink-light">
-      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-      </svg>
-      <span id="view-count">-- 次阅读</span>
+    <div class="mt-8 flex flex-col md:flex-row items-center justify-between gap-4 py-4 opacity-0 animate-fade-in" style="animation-delay: 0.6s; animation-fill-mode: forwards;">
+      <div class="flex items-center gap-2 text-sm text-ink-light">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+        </svg>
+        <span id="view-count">-- 次阅读</span>
+      </div>
+
+      <div class="flex items-center gap-4">
+        <button id="btn-like" class="flex items-center gap-2 px-4 py-1.5 rounded-full border border-cream-dark hover:border-accent hover:text-accent transition-all text-sm text-ink-light group bg-white dark:bg-[#1a1a1a]">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.514" />
+          </svg>
+          <span id="like-count">赞 (0)</span>
+        </button>
+
+        <button id="btn-favorite" class="flex items-center gap-2 px-4 py-1.5 rounded-full border border-cream-dark hover:border-accent hover:text-accent transition-all text-sm text-ink-light group bg-white dark:bg-[#1a1a1a]">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+          </svg>
+          <span id="favorite-count">收藏 (0)</span>
+        </button>
+      </div>
     </div>
 
-    <!-- 评论区 -->
     <div class="mt-16 pt-8 border-t border-cream-dark">
       <h3 class="text-lg font-serif font-semibold text-ink mb-8">评论</h3>
 
-      <!-- 评论列表 -->
       <div id="comments-list" class="space-y-6 mb-10">
         <p class="text-sm text-ink-light">加载评论中...</p>
       </div>
 
-      <!-- 发表评论表单 -->
       <div class="bg-cream rounded-xl p-6 border border-cream-dark">
         <h4 class="text-sm font-medium text-ink mb-4">发表评论</h4>
         <div class="space-y-4">
@@ -172,15 +168,72 @@ const getReadingTime = (content: string) => {
   </article>
 </Layout>
 
-<script define:vars={{ postId }}>
+<script is:inline data-astro-rerun>
+(() => {
+  const postId = document.querySelector('[data-post-id]')?.dataset.postId;
+  if (!postId) return;
   const API = '/api';
 
-  // ── 浏览量 ──
+  // 转义用户提供的内容，防止 XSS
+  const escapeHtml = (str) => String(str ?? '').replace(/[&<>"']/g, (c) => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[c]));
+
+  // ── 初始化获取统计数据 (浏览、点赞、收藏) ──
   fetch(`${API}/views/${postId}`, { method: 'POST' })
     .then(r => r.json())
     .then(d => {
       document.getElementById('view-count').textContent = `${d.views} 次阅读`;
+      document.getElementById('like-count').textContent = `赞 (${d.likes || 0})`;
+      document.getElementById('favorite-count').textContent = `收藏 (${d.favorites || 0})`;
+    })
+    .catch(() => {
+      document.getElementById('view-count').textContent = '统计暂不可用';
     });
+
+  // ── 点赞逻辑防抖与处理 ──
+  const btnLike = document.getElementById('btn-like');
+  if (localStorage.getItem(`liked_${postId}`)) {
+    btnLike.classList.add('text-accent', 'border-accent');
+  }
+  btnLike.addEventListener('click', () => {
+    if (localStorage.getItem(`liked_${postId}`)) {
+      alert('您已经点过赞啦！感谢支持！');
+      return;
+    }
+    fetch(`${API}/likes/${postId}`, { method: 'POST' })
+      .then(r => r.json())
+      .then(d => {
+        if (d.success) {
+          document.getElementById('like-count').textContent = `赞 (${d.likes})`;
+          btnLike.classList.add('text-accent', 'border-accent');
+          localStorage.setItem(`liked_${postId}`, 'true');
+        }
+      })
+      .catch(() => alert('网络异常，点赞失败，请稍后重试'));
+  });
+
+  // ── 收藏逻辑防抖与处理 ──
+  const btnFav = document.getElementById('btn-favorite');
+  if (localStorage.getItem(`fav_${postId}`)) {
+    btnFav.classList.add('text-accent', 'border-accent');
+  }
+  btnFav.addEventListener('click', () => {
+    if (localStorage.getItem(`fav_${postId}`)) {
+      alert('这篇文章已经在您的收藏夹里啦！');
+      return;
+    }
+    fetch(`${API}/favorites/${postId}`, { method: 'POST' })
+      .then(r => r.json())
+      .then(d => {
+        if (d.success) {
+          document.getElementById('favorite-count').textContent = `收藏 (${d.favorites})`;
+          btnFav.classList.add('text-accent', 'border-accent');
+          localStorage.setItem(`fav_${postId}`, 'true');
+        }
+      })
+      .catch(() => alert('网络异常，收藏失败，请稍后重试'));
+  });
 
   // ── 加载评论 ──
   const loadComments = () => {
@@ -192,35 +245,46 @@ const getReadingTime = (content: string) => {
           list.innerHTML = '<p class="text-sm text-ink-light">还没有评论，来第一个吧！</p>';
           return;
         }
-        list.innerHTML = d.comments.map(c => `
-          <div class="flex gap-4 group" id="comment-${c.id}">
+        list.innerHTML = d.comments.map(c => {
+          const author = escapeHtml(c.author);
+          const content = escapeHtml(c.content);
+          const initial = escapeHtml(String(c.author ?? '?').charAt(0).toUpperCase());
+          const time = escapeHtml(new Date(c.created_at).toLocaleString('zh-CN'));
+          const id = Number(c.id);
+          return `
+          <div class="flex gap-4 group" id="comment-${id}">
             <div class="w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center text-accent text-sm font-medium flex-shrink-0">
-              ${c.author.charAt(0).toUpperCase()}
+              ${initial}
             </div>
             <div class="flex-1">
               <div class="flex items-center gap-3 mb-1">
-                <span class="text-sm font-medium text-ink">${c.author}</span>
-                <span class="text-xs text-ink-light">${new Date(c.created_at).toLocaleString('zh-CN')}</span>
-                <button 
-                  onclick="deleteComment(${c.id})"
+                <span class="text-sm font-medium text-ink">${author}</span>
+                <span class="text-xs text-ink-light">${time}</span>
+                <button
+                  onclick="deleteComment(${id})"
                   class="text-xs text-red-400 hover:text-red-600 ml-auto opacity-0 group-hover:opacity-100 transition-opacity"
                   title="删除评论"
                 >
                   删除
                 </button>
               </div>
-              <p class="text-sm text-ink-light leading-relaxed">${c.content}</p>
+              <p class="text-sm text-ink-light leading-relaxed">${content}</p>
             </div>
           </div>
-        `).join('');
+        `;
+        }).join('');
+      })
+      .catch(() => {
+        const list = document.getElementById('comments-list');
+        if (list) list.innerHTML = '<p class="text-sm text-ink-light">评论加载失败，请稍后重试。</p>';
       });
   };
   loadComments();
 
-  // ── 删除评论 ──
+  // ── 删除评论 (仅管理员通过 Token 操作才有效) ──
   window.deleteComment = (commentId) => {
     if (!confirm('确定要删除这条评论吗？')) return;
-    
+
     fetch(`${API}/comments/${commentId}`, { method: 'DELETE' })
       .then(r => r.json())
       .then(d => {
@@ -228,9 +292,10 @@ const getReadingTime = (content: string) => {
           const el = document.getElementById(`comment-${commentId}`);
           if (el) el.remove();
         } else {
-          alert(d.error || '删除失败');
+          alert(d.error || '删除失败，可能需要管理员权限');
         }
-      });
+      })
+      .catch(() => alert('网络异常，删除失败，请稍后重试'));
   };
 
   // ── 发表评论 ──
@@ -261,10 +326,12 @@ const getReadingTime = (content: string) => {
           msg.textContent = d.error || '发表失败，请重试';
         }
       })
+      .catch(() => { msg.textContent = '网络异常，发表失败，请稍后重试'; })
       .finally(() => {
         document.getElementById('comment-submit').disabled = false;
       });
   });
+})();
 </script>
 
 <style is:global>

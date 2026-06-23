@@ -1,22 +1,10 @@
 ---
 import Layout from '../layouts/Layout.astro'
 import { getCollection } from 'astro:content'
+import { formatDate, getReadingTime } from '../utils/format'
 
 const posts = await getCollection('posts')
 const sortedPosts = posts.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
-
-const formatDate = (date: Date) => {
-  return date.toLocaleDateString('zh-CN', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  })
-}
-
-const getReadingTime = (content: string) => {
-  const minutes = Math.ceil(content.length / 400)
-  return minutes
-}
 ---
 
 <Layout title="落秋笔记 - 记录与思考">
@@ -96,7 +84,7 @@ const getReadingTime = (content: string) => {
             <div class="flex items-center gap-6 text-sm text-ink-light/70">
               <time>{formatDate(post.data.date)}</time>
               <span class="w-1 h-1 rounded-full bg-ink-light/30"></span>
-              <span>{getReadingTime(post.data.description)} 分钟阅读</span>
+              <span>{getReadingTime(post.body)} 分钟阅读</span>
             </div>
           </div>
         </a>
@@ -253,7 +241,8 @@ const getReadingTime = (content: string) => {
   }
 </style>
 
-<script is:inline>
+<script is:inline data-astro-rerun>
+(() => {
   const phrases = [
     '「少即是多」',
     '「记录生活，感悟人生」',
@@ -267,8 +256,10 @@ const getReadingTime = (content: string) => {
   const typewriter = document.getElementById('typewriter');
   
   const type = () => {
+    // 元素已随页面切换被移除时，终止这个残留的定时器循环
+    if (!typewriter || !typewriter.isConnected) return;
     const currentPhrase = phrases[phraseIndex];
-    
+
     if (isDeleting) {
       typewriter.textContent = currentPhrase.substring(0, charIndex - 1);
       charIndex--;
@@ -292,4 +283,5 @@ const getReadingTime = (content: string) => {
   };
   
   setTimeout(type, 1500);
+})();
 </script>
