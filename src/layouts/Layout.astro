@@ -16,6 +16,16 @@ const searchData = posts.map(post => ({
   description: post.data.description,
   tags: post.data.tags || []
 }))
+
+const navItems = [
+  { href: '/', label: '首页' },
+  { href: '/archives', label: '归档' },
+  { href: '/tags', label: '标签' },
+  { href: '/about', label: '关于' },
+]
+const pathname = Astro.url.pathname.replace(/\/+$/, '') || '/'
+const isActive = (href: string) =>
+  href === '/' ? pathname === '/' : pathname === href || pathname.startsWith(href + '/')
 ---
 
 <!DOCTYPE html>
@@ -68,26 +78,26 @@ const searchData = posts.map(post => ({
         </a>
         
         <div class="hidden md:flex items-center gap-10">
-          <a href="/" class="text-base font-medium text-ink-light hover:text-accent transition-colors relative group">
-            <span>首页</span>
-            <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-accent transition-all duration-300 group-hover:w-full"></span>
-          </a>
-          <a href="/archives" class="text-base font-medium text-ink-light hover:text-accent transition-colors relative group">
-            <span>归档</span>
-            <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-accent transition-all duration-300 group-hover:w-full"></span>
-          </a>
-          <a href="/tags" class="text-base font-medium text-ink-light hover:text-accent transition-colors relative group">
-            <span>标签</span>
-            <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-accent transition-all duration-300 group-hover:w-full"></span>
-          </a>
-          <a href="/about" class="text-base font-medium text-ink-light hover:text-accent transition-colors relative group">
-            <span>关于</span>
-            <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-accent transition-all duration-300 group-hover:w-full"></span>
-          </a>
+          {navItems.map(item => (
+            <a
+              href={item.href}
+              aria-current={isActive(item.href) ? 'page' : undefined}
+              class:list={[
+                'text-base font-medium transition-colors relative group',
+                isActive(item.href) ? 'text-accent' : 'text-ink-light hover:text-accent',
+              ]}
+            >
+              <span>{item.label}</span>
+              <span class:list={[
+                'absolute -bottom-1 left-0 h-0.5 bg-accent transition-all duration-300',
+                isActive(item.href) ? 'w-full' : 'w-0 group-hover:w-full',
+              ]}></span>
+            </a>
+          ))}
         </div>
         
         <div class="flex items-center gap-4">
-          <button id="search-btn" class="p-2.5 text-ink-light hover:text-accent hover:bg-cream-dark rounded-lg transition-all" aria-label="搜索">
+          <button id="search-btn" class="p-2.5 text-ink-light hover:text-accent hover:bg-cream-dark rounded-lg transition-all" aria-label="搜索" title="搜索 (⌘K / Ctrl+K)">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
@@ -102,7 +112,7 @@ const searchData = posts.map(post => ({
             </svg>
           </button>
           
-          <button id="mobile-menu-btn" class="md:hidden p-2.5 text-ink-light hover:bg-cream-dark rounded-lg transition-all">
+          <button id="mobile-menu-btn" aria-label="打开菜单" aria-expanded="false" aria-controls="mobile-menu" class="md:hidden p-2.5 text-ink-light hover:bg-cream-dark rounded-lg transition-all">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
             </svg>
@@ -112,11 +122,17 @@ const searchData = posts.map(post => ({
     </header>
     
     <div id="mobile-menu" class="md:hidden fixed inset-0 bg-cream/98 backdrop-blur-md z-40 flex flex-col items-center justify-center gap-8 opacity-0 pointer-events-none transition-opacity duration-300">
-      <a href="/" class="text-2xl font-serif text-ink hover:text-accent">首页</a>
-      <a href="/archives" class="text-2xl font-serif text-ink hover:text-accent">归档</a>
-      <a href="/tags" class="text-2xl font-serif text-ink hover:text-accent">标签</a>
-      <a href="/about" class="text-2xl font-serif text-ink hover:text-accent">关于</a>
-      <button id="close-menu" class="absolute top-6 right-6 text-3xl text-ink-light w-12 h-12 flex items-center justify-center hover:bg-cream-dark rounded-lg transition-all">&times;</button>
+      {navItems.map(item => (
+        <a
+          href={item.href}
+          aria-current={isActive(item.href) ? 'page' : undefined}
+          class:list={[
+            'text-2xl font-serif hover:text-accent',
+            isActive(item.href) ? 'text-accent' : 'text-ink',
+          ]}
+        >{item.label}</a>
+      ))}
+      <button id="close-menu" aria-label="关闭菜单" class="absolute top-6 right-6 text-3xl text-ink-light w-12 h-12 flex items-center justify-center hover:bg-cream-dark rounded-lg transition-all">&times;</button>
     </div>
     
     <main class="flex-1">
@@ -171,6 +187,8 @@ const searchData = posts.map(post => ({
       </div>
     </footer>
 
+    <div id="toast" role="status" aria-live="polite" class="toast"></div>
+
     <button id="back-to-top" class="back-to-top" aria-label="返回顶部">
       <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
@@ -224,42 +242,105 @@ const searchData = posts.map(post => ({
         })
       }
       
-      // 3. 滚动与返回顶部
+      // 全局 Toast 轻提示
+      let toastTimer
+      window.showToast = (message) => {
+        const el = document.getElementById('toast')
+        if (!el) return
+        el.textContent = message
+        el.classList.add('visible')
+        clearTimeout(toastTimer)
+        toastTimer = setTimeout(() => el.classList.remove('visible'), 1800)
+      }
+
+      const escapeHtml = (str) => String(str ?? '').replace(/[&<>"']/g, (c) => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      }[c]))
+
+      // 3. 滚动与返回顶部（rAF 节流）
       function initScrollHandlers() {
         const progressBar = document.getElementById('reading-progress')
         const backToTop = document.getElementById('back-to-top')
-        window.addEventListener('scroll', () => {
+        let ticking = false
+        const update = () => {
           const scrollTop = document.documentElement.scrollTop
           const scrollHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight
-          if (progressBar) progressBar.style.width = `${(scrollTop / scrollHeight) * 100}%`
-          if (backToTop) {
-            if (scrollTop > 300) backToTop.classList.add('visible')
-            else backToTop.classList.remove('visible')
-          }
-        })
+          if (progressBar) progressBar.style.width = `${scrollHeight > 0 ? (scrollTop / scrollHeight) * 100 : 0}%`
+          if (backToTop) backToTop.classList.toggle('visible', scrollTop > 300)
+          ticking = false
+        }
+        const onScroll = () => { if (!ticking) { ticking = true; requestAnimationFrame(update) } }
+        window.addEventListener('scroll', onScroll, { passive: true })
+        update()
         if (backToTop) backToTop.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }))
       }
 
-      // 4. 全局弹窗搜索 (基于预生成的静态数据)
+      // 4. 全局弹窗搜索 (基于预生成的静态数据，支持键盘操作)
       function initSearch() {
         const btn = document.getElementById('search-btn')
         const modal = document.getElementById('search-modal')
         const input = document.getElementById('modal-search-input')
         const results = document.getElementById('modal-search-results')
-        const closeSearch = () => { modal?.classList.remove('active'); if(input) input.value=''; if(results) results.innerHTML=''; }
-        btn?.addEventListener('click', () => { modal?.classList.add('active'); input?.focus(); })
-        document.addEventListener('keydown', (e) => { if(e.key === 'Escape') closeSearch() })
-        modal?.addEventListener('click', (e) => { if (e.target === modal) closeSearch() })
-        input?.addEventListener('input', (e) => {
+        if (!modal || !input || !results) return
+        let activeIndex = -1
+
+        const getItems = () => Array.from(results.querySelectorAll('[data-result]'))
+        const setActive = (i) => {
+          const items = getItems()
+          if (!items.length) return
+          activeIndex = (i + items.length) % items.length
+          items.forEach((el, idx) => el.classList.toggle('search-active', idx === activeIndex))
+          items[activeIndex].scrollIntoView({ block: 'nearest' })
+        }
+        const openSearch = () => { modal.classList.add('active'); input.focus() }
+        const closeSearch = () => { modal.classList.remove('active'); input.value = ''; results.innerHTML = ''; activeIndex = -1 }
+
+        btn?.addEventListener('click', openSearch)
+        modal.addEventListener('click', (e) => { if (e.target === modal) closeSearch() })
+
+        input.addEventListener('input', (e) => {
           const q = e.target.value.toLowerCase().trim()
-          if (!q) { if(results) results.innerHTML = ''; return; }
-          const match = window.searchData.filter(p => p.title.toLowerCase().includes(q) || p.description.toLowerCase().includes(q) || p.tags.some(t => t.toLowerCase().includes(q)))
-          if (results) {
-            results.innerHTML = match.length === 0 
-              ? '<div class="p-6 text-center text-ink-light">没有找到相关文章</div>' 
-              : match.map(p => `<a href="/posts/${p.id}" class="block p-5 hover:bg-cream-dark transition-colors border-b border-cream-dark last:border-b-0"><div class="font-medium text-ink text-lg">${p.title}</div><div class="text-sm text-ink-light mt-1">${p.description}</div></a>`).join('')
+          activeIndex = -1
+          if (!q) { results.innerHTML = ''; return }
+          const match = (window.searchData || []).filter(p =>
+            p.title.toLowerCase().includes(q) ||
+            p.description.toLowerCase().includes(q) ||
+            p.tags.some(t => t.toLowerCase().includes(q)))
+          results.innerHTML = match.length === 0
+            ? '<div class="p-6 text-center text-ink-light">没有找到相关文章</div>'
+            : match.map(p => `<a data-result href="/posts/${encodeURIComponent(p.id)}" class="block p-5 hover:bg-cream-dark transition-colors border-b border-cream-dark last:border-b-0"><div class="font-medium text-ink text-lg">${escapeHtml(p.title)}</div><div class="text-sm text-ink-light mt-1">${escapeHtml(p.description)}</div></a>`).join('')
+        })
+
+        input.addEventListener('keydown', (e) => {
+          const items = getItems()
+          if (e.key === 'ArrowDown') { e.preventDefault(); setActive(activeIndex + 1) }
+          else if (e.key === 'ArrowUp') { e.preventDefault(); setActive(activeIndex - 1) }
+          else if (e.key === 'Enter') {
+            const target = items[activeIndex] || items[0]
+            if (target) { e.preventDefault(); window.location.href = target.getAttribute('href') }
           }
         })
+
+        // ⌘K / Ctrl+K 唤起，Esc 关闭
+        if (!window.__searchHotkeyBound) {
+          window.__searchHotkeyBound = true
+          document.addEventListener('keydown', (e) => {
+            if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+              e.preventDefault()
+              const m = document.getElementById('search-modal')
+              m?.classList.contains('active') ? m.classList.remove('active') : document.getElementById('search-btn')?.click()
+            } else if (e.key === 'Escape') {
+              const m = document.getElementById('search-modal')
+              if (m?.classList.contains('active')) {
+                m.classList.remove('active')
+                const inp = document.getElementById('modal-search-input')
+                if (inp) inp.value = ''
+                const r = document.getElementById('modal-search-results')
+                if (r) r.innerHTML = ''
+              }
+            }
+          })
+        }
       }
 
       // 5. 移动端菜单
@@ -267,13 +348,41 @@ const searchData = posts.map(post => ({
         const btn = document.getElementById('mobile-menu-btn')
         const menu = document.getElementById('mobile-menu')
         const close = document.getElementById('close-menu')
-        btn?.addEventListener('click', () => { menu?.classList.remove('opacity-0', 'pointer-events-none'); menu?.classList.add('opacity-100'); })
-        close?.addEventListener('click', () => { menu?.classList.add('opacity-0', 'pointer-events-none'); menu?.classList.remove('opacity-100'); })
+        if (!btn || !menu) return
+        const open = () => {
+          menu.classList.remove('opacity-0', 'pointer-events-none')
+          menu.classList.add('opacity-100')
+          btn.setAttribute('aria-expanded', 'true')
+          document.body.style.overflow = 'hidden'
+        }
+        const hide = () => {
+          menu.classList.add('opacity-0', 'pointer-events-none')
+          menu.classList.remove('opacity-100')
+          btn.setAttribute('aria-expanded', 'false')
+          document.body.style.overflow = ''
+        }
+        btn.addEventListener('click', open)
+        close?.addEventListener('click', hide)
+        menu.querySelectorAll('a').forEach(a => a.addEventListener('click', hide))
+        if (!window.__mobileEscBound) {
+          window.__mobileEscBound = true
+          document.addEventListener('keydown', (e) => {
+            if (e.key !== 'Escape') return
+            const m = document.getElementById('mobile-menu')
+            const b = document.getElementById('mobile-menu-btn')
+            m?.classList.add('opacity-0', 'pointer-events-none')
+            m?.classList.remove('opacity-100')
+            b?.setAttribute('aria-expanded', 'false')
+            document.body.style.overflow = ''
+          })
+        }
       }
 
       // 初始化所有脚本
       initThemeToggle(); initScrollHandlers(); initSearch(); initMobileMenu();
       document.addEventListener('astro:page-load', () => { initThemeToggle(); initScrollHandlers(); initSearch(); initMobileMenu(); });
+      // 切换页面时复位 body 滚动锁
+      document.addEventListener('astro:before-swap', () => { document.body.style.overflow = '' });
     </script>
   </body>
 </html>

@@ -2,6 +2,11 @@
 import Layout from './Layout.astro'
 import { formatDate, getReadingTime } from '../utils/format'
 
+interface PostLink {
+  id: string
+  title: string
+}
+
 interface Props {
   title: string
   postId: string
@@ -9,9 +14,11 @@ interface Props {
   tags?: string[]
   description?: string
   body?: string
+  newer?: PostLink | null
+  older?: PostLink | null
 }
 
-const { title, postId, date, tags = [], description, body = '' } = Astro.props
+const { title, postId, date, tags = [], description, body = '', newer = null, older = null } = Astro.props
 const readingTime = getReadingTime(body)
 ---
 
@@ -80,8 +87,8 @@ const readingTime = getReadingTime(body)
       <div class="mb-8">
         <div class="text-sm text-ink-light mb-3">分享</div>
         <div class="flex gap-4">
-          <button 
-            onclick={`navigator.clipboard.writeText(window.location.href)`}
+          <button
+            id="copy-link-btn"
             class="flex items-center gap-2 text-sm text-ink-light bg-cream-dark px-4 py-2 rounded hover:bg-accent/20 hover:text-accent transition-colors"
           >
             <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -102,6 +109,23 @@ const readingTime = getReadingTime(body)
         <span>返回首页</span>
       </a>
     </footer>
+
+    {(newer || older) && (
+      <nav class="mt-12 grid grid-cols-1 md:grid-cols-2 gap-4" aria-label="文章导航">
+        {older ? (
+          <a href={`/posts/${older.id}`} class="group flex flex-col gap-1 p-5 rounded-xl border border-cream-dark hover:border-accent transition-colors">
+            <span class="text-xs text-ink-light">← 上一篇</span>
+            <span class="text-sm font-medium text-ink group-hover:text-accent transition-colors line-clamp-1">{older.title}</span>
+          </a>
+        ) : <span class="hidden md:block"></span>}
+        {newer ? (
+          <a href={`/posts/${newer.id}`} class="group flex flex-col gap-1 p-5 rounded-xl border border-cream-dark hover:border-accent transition-colors text-right md:items-end">
+            <span class="text-xs text-ink-light">下一篇 →</span>
+            <span class="text-sm font-medium text-ink group-hover:text-accent transition-colors line-clamp-1">{newer.title}</span>
+          </a>
+        ) : <span class="hidden md:block"></span>}
+      </nav>
+    )}
 
     <div class="mt-8 flex flex-col md:flex-row items-center justify-between gap-4 py-4 opacity-0 animate-fade-in" style="animation-delay: 0.6s; animation-fill-mode: forwards;">
       <div class="flex items-center gap-2 text-sm text-ink-light">
@@ -178,6 +202,40 @@ const readingTime = getReadingTime(body)
   const escapeHtml = (str) => String(str ?? '').replace(/[&<>"']/g, (c) => ({
     '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
   }[c]));
+
+  const toast = (msg) => (window.showToast ? window.showToast(msg) : alert(msg));
+
+  // ── 复制链接（带反馈）──
+  const copyLinkBtn = document.getElementById('copy-link-btn');
+  copyLinkBtn?.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      toast('链接已复制');
+    } catch {
+      toast('复制失败，请手动复制');
+    }
+  });
+
+  // ── 代码块一键复制 ──
+  document.querySelectorAll('.prose pre').forEach((pre) => {
+    if (pre.querySelector('.code-copy-btn')) return;
+    const btn = document.createElement('button');
+    btn.className = 'code-copy-btn';
+    btn.type = 'button';
+    btn.setAttribute('aria-label', '复制代码');
+    btn.textContent = '复制';
+    btn.addEventListener('click', async () => {
+      const code = pre.querySelector('code');
+      try {
+        await navigator.clipboard.writeText(code ? code.innerText : pre.innerText);
+        btn.textContent = '已复制';
+        setTimeout(() => { btn.textContent = '复制'; }, 1500);
+      } catch {
+        toast('复制失败');
+      }
+    });
+    pre.appendChild(btn);
+  });
 
   // ── 初始化获取统计数据 (浏览、点赞、收藏) ──
   fetch(`${API}/views/${postId}`, { method: 'POST' })
