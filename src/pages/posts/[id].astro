@@ -17,7 +17,9 @@ export async function getStaticPaths() {
 }
 
 const { post, newer, older } = Astro.props
-const { Content } = await render(post)
+const { Content, headings } = await render(post)
+// 只取 h2 / h3 作为目录层级
+const toc = headings.filter(h => h.depth === 2 || h.depth === 3)
 ---
 
 <PostLayout 
@@ -29,6 +31,7 @@ const { Content } = await render(post)
   body={post.body}
   newer={newer}
   older={older}
+  toc={toc}
 >
   <Content />
 </PostLayout>

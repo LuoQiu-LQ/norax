@@ -7,6 +7,12 @@ interface PostLink {
   title: string
 }
 
+interface TocItem {
+  depth: number
+  slug: string
+  text: string
+}
+
 interface Props {
   title: string
   postId: string
@@ -16,13 +22,40 @@ interface Props {
   body?: string
   newer?: PostLink | null
   older?: PostLink | null
+  toc?: TocItem[]
 }
 
-const { title, postId, date, tags = [], description, body = '', newer = null, older = null } = Astro.props
+const { title, postId, date, tags = [], description, body = '', newer = null, older = null, toc = [] } = Astro.props
 const readingTime = getReadingTime(body)
+const showToc = toc.length >= 2
 ---
 
 <Layout title={`${title} - 墨白`} description={description}>
+  {showToc && (
+    <aside
+      id="toc"
+      aria-label="文章目录"
+      class="hidden xl:flex flex-col fixed top-32 w-56 max-h-[70vh] overflow-y-auto pr-3"
+      style="left: calc(50% - 24rem - 15rem);"
+    >
+      <div class="text-xs font-semibold uppercase tracking-widest text-ink-light/70 mb-3">目录</div>
+      <ul class="space-y-1 text-sm border-l border-cream-dark">
+        {toc.map(item => (
+          <li>
+            <a
+              href={`#${item.slug}`}
+              data-toc-link={item.slug}
+              class:list={[
+                'block py-1 -ml-px border-l-2 border-transparent text-ink-light hover:text-accent transition-colors',
+                item.depth === 3 ? 'pl-7' : 'pl-4',
+              ]}
+            >{item.text}</a>
+          </li>
+        ))}
+      </ul>
+    </aside>
+  )}
+
   <article class="max-w-3xl mx-auto px-6 py-12 md:py-16" data-post-id={postId}>
     <nav class="mb-12 opacity-0 animate-fade-in">
       <a 
@@ -236,6 +269,40 @@ const readingTime = getReadingTime(body)
     });
     pre.appendChild(btn);
   });
+
+  // ── 文章目录滚动高亮 (scroll-spy) ──
+  const tocLinks = Array.from(document.querySelectorAll('[data-toc-link]'));
+  if (tocLinks.length) {
+    const linkMap = new Map(tocLinks.map(a => [a.dataset.tocLink, a]));
+    const headings = tocLinks
+      .map(a => document.getElementById(a.dataset.tocLink))
+      .filter(Boolean);
+    let current = null;
+    const setActive = (slug) => {
+      if (slug === current) return;
+      current = slug;
+      tocLinks.forEach(a => a.classList.toggle('toc-active', a.dataset.tocLink === slug));
+    };
+    const spy = new IntersectionObserver((entries) => {
+      const visible = entries
+        .filter(e => e.isIntersecting)
+        .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+      if (visible.length) {
+        setActive(visible[0].target.id);
+      }
+    }, { rootMargin: '-96px 0px -70% 0px', threshold: 0 });
+    headings.forEach(h => spy.observe(h));
+    // 点击目录项平滑滚动
+    tocLinks.forEach(a => a.addEventListener('click', (e) => {
+      const target = document.getElementById(a.dataset.tocLink);
+      if (target) {
+        e.preventDefault();
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        history.replaceState(null, '', `#${a.dataset.tocLink}`);
+        setActive(a.dataset.tocLink);
+      }
+    }));
+  }
 
   // ── 初始化获取统计数据 (浏览、点赞、收藏) ──
   fetch(`${API}/views/${postId}`, { method: 'POST' })

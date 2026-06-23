@@ -181,6 +181,26 @@ a:hover {
   pointer-events: auto;
 }
 
+/* 文章目录 (TOC) 当前章节高亮 */
+.toc-active {
+  color: var(--color-accent) !important;
+  border-color: var(--color-accent) !important;
+  font-weight: 500;
+}
+
+.dark .toc-active {
+  color: var(--color-accent-light) !important;
+  border-color: var(--color-accent-light) !important;
+}
+
+/* 锚点跳转时为粘性页头留出空间 */
+.prose h1,
+.prose h2,
+.prose h3,
+.prose h4 {
+  scroll-margin-top: 6rem;
+}
+
 /* 搜索结果键盘选中态 */
 .search-active {
   background-color: var(--color-cream-dark);
